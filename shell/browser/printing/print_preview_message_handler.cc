@@ -175,13 +175,10 @@ void PrintPreviewMessageHandler::OnCompositePdfPageDone(
 
 void PrintPreviewMessageHandler::OnDidPreviewPage(
     content::RenderFrameHost* render_frame_host,
-    const printing::mojom::DidPreviewPageParams& params,
+    const PrintHostMsg_DidPreviewPage_Params& params,
     const PrintHostMsg_PreviewIds& ids) {
-  int page_number = params.page_number;
-  const printing::mojom::DidPrintContentParams& content = *params.content;
-
-  if (page_number < printing::FIRST_PAGE_INDEX ||
-      !content.metafile_data_region.IsValid()) {
+  if (params.page_number < printing::FIRST_PAGE_INDEX ||
+      !params.content.metafile_data_region.IsValid()) {
     RejectPromise(ids.request_id);
     return;
   }
@@ -196,7 +193,7 @@ void PrintPreviewMessageHandler::OnDidPreviewPage(
         params.document_cookie, render_frame_host, content,
         mojo::WrapCallbackWithDefaultInvokeIfNotRun(
             base::BindOnce(&PrintPreviewMessageHandler::OnCompositePdfPageDone,
-                           weak_ptr_factory_.GetWeakPtr(), page_number,
+                           weak_ptr_factory_.GetWeakPtr(), params.page_number,
                            params.document_cookie, ids),
             printing::mojom::PrintCompositor::Status::kCompositingFailure,
             base::ReadOnlySharedMemoryRegion()));
